@@ -49,8 +49,10 @@ def xml_to_csv(**context):
     if not os.path.exists(xml_path):
         raise FileNotFoundError(f"XML file not found: {xml_path}")
 
-    tree = ET.parse(xml_path)
-    root = tree.getroot()
+    with open(xml_path, encoding="windows-1251") as f:
+        tree = ET.parse(f)
+
+root = tree.getroot()
 
     # Ожидаем структуру <ValCurs Date="..." name="..."> <Valute ID="..."> ... </Valute> ... </ValCurs>
     rows = []
