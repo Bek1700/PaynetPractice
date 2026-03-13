@@ -32,8 +32,8 @@ dag = DAG("bek_load_cbr", # Меняем название нашего DAG
 
 
 load_cbr_xml_script = '''
-mkdir -p /opt/bek
-curl https://www.cbr.ru/scripts/XML_daily.asp?date_req=01/11/2021 | iconv -f Windows-1251 -t UTF-8 > /opt/bek/cbr.xml
+mkdir -p /tmp/bek
+curl https://www.cbr.ru/scripts/XML_daily.asp?date_req=01/11/2021 | iconv -f Windows-1251 -t UTF-8 > /tmp/bek/cbr.xml
 '''
 load_cbr_xml = BashOperator(
     task_id='load_cbr_xml', # Меняем название в нашем task
@@ -43,8 +43,8 @@ load_cbr_xml = BashOperator(
 
 
 def xml_to_csv(**context):
-    xml_path = '/opt/bek/cbr.xml'
-    csv_path = '/opt/bek/cbr.csv'
+    xml_path = '/tmp/bek/cbr.xml'
+    csv_path = '/tmp/bek/cbr.csv'
 
     if not os.path.exists(xml_path):
         raise FileNotFoundError(f"XML file not found: {xml_path}")
