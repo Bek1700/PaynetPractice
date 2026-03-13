@@ -32,6 +32,7 @@ dag = DAG("bek_load_cbr", # Меняем название нашего DAG
 
 
 load_cbr_xml_script = '''
+mkdir -p /opt/bek
 curl https://www.cbr.ru/scripts/XML_daily.asp?date_req=01/11/2021 | iconv -f Windows-1251 -t UTF-8 > /opt/bek/cbr.xml
 '''
 load_cbr_xml = BashOperator(
