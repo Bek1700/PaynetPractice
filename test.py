@@ -49,7 +49,7 @@ def xml_to_csv(**context):
     if not os.path.exists(xml_path):
         raise FileNotFoundError(f"XML file not found: {xml_path}")
 
-    with open(xml_path, encoding="windows-1251") as f:
+    with open(xml_path, "rb") as f:
         tree = ET.parse(f)
 
     root = tree.getroot()
