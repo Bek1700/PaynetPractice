@@ -69,14 +69,8 @@ export_xml_to_csv = PythonOperator( # Xml перекладываем в csv, т�
 
 
 
-def upload_to_minio(**context):
-    csv_path = context['ti'].xcom_pull(task_ids='export_xml_to_csv')
-    if not csv_path:
-        # Сценарий, когда upload_to_minio запускается вручную, без upstream run
-        csv_path = '/opt/airflow/include/bek/cbr.csv'
-
-    if not os.path.exists(csv_path):
-        raise FileNotFoundError(f'CSV file not found: {csv_path}')
+def upload_to_minio():
+    csv_path = '/opt/airflow/include/bek/cbr.csv'
 
     bucket_name = os.environ.get('MINIO_BUCKET', 'cbr-data')
     object_key = os.environ.get('MINIO_OBJECT', 'cbr.csv')
@@ -91,7 +85,6 @@ def upload_to_minio(**context):
         bucket_name=bucket_name,
         replace=True,
     )
-    logging.info('Uploaded CSV %s to s3://%s/%s', csv_path, bucket_name, object_key)
     logging.info('Uploaded CSV %s to s3://%s/%s', csv_path, bucket_name, object_key)
 
 
