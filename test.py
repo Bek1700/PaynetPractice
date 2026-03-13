@@ -70,8 +70,12 @@ export_xml_to_csv = PythonOperator( # Xml перекладываем в csv, т�
 
 
 def upload_to_minio(**context):
-    csv_path = context['ti'].xcom_pull(task_ids='xml_to_csv')
-    if not csv_path or not os.path.exists(csv_path):
+    csv_path = context['ti'].xcom_pull(task_ids='export_xml_to_csv')
+    if not csv_path:
+        # Сценарий, когда upload_to_minio запускается вручную, без upstream run
+        csv_path = '/tmp/bek/cbr.csv'
+
+    if not os.path.exists(csv_path):
         raise FileNotFoundError(f'CSV file not found: {csv_path}')
 
     bucket_name = os.environ.get('MINIO_BUCKET', 'cbr-data')
