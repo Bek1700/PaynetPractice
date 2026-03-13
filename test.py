@@ -42,42 +42,31 @@ load_cbr_xml = BashOperator(
 )
 
 
-def xml_to_csv(**context):
-    xml_path = '/opt/airflow/include/bek/cbr.xml'
-    csv_path = '/opt/airflow/include/bek/cbr.csv'
 
-    if not os.path.exists(xml_path):
-        raise FileNotFoundError(f"XML file not found: {xml_path}")
+def export_xml_to_csv_func(): 
+    parser = ET.XMLParser(encoding="UTF-8") # Создаем Parser формата UTF-8, натравливаем его на нужный файл ('/opt/airflow/include/bek/cbr.xml', parser=parser)
+    tree = ET.parse('/opt/airflow/include/bek/cbr.xml', parser=parser)
+    root = tree.getroot() # Корень нашего файла
 
-    with open(xml_path, "rb") as f:
-        tree = ET.parse(f)
+    with open('/opt/airflow/include/bek/cbr.csv', 'w') as csv_file: # Открываем csv в которую будем писать построчно каждый элемент, который нас интересует: Valute, NumCode и т.д.
+        writer = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        for Valute in root.findall('Valute'):
+            NumCode = Valute.find('NumCode').text
+            CharCode = Valute.find('CharCode').text
+            Nominal = Valute.find('Nominal').text
+            Name = Valute.find('Name').text
+            Value = Valute.find('Value').text
+            writer.writerow([root.attrib['Date']] + [Valute.attrib['ID']] + [NumCode] + [CharCode] + [Nominal] +
+                            [Name] + [Value.replace(',', '.')]) # Из атрибута root берем дату, из атрибута valute берем id, в конце заменяем запятую на точку, для того, чтобы при сохранении в формате csv, если оставить запятую в нашем поле, формат решит, что это переход на новое значение
+            logging.info([root.attrib['Date']] + [Valute.attrib['ID']] + [NumCode] + [CharCode] + [Nominal] +
+                         [Name] + [Value.replace(',', '.')]) # Логируем все в log airflow, чтобы посмотреть  все ли хорошо
 
-    root = tree.getroot()
+export_xml_to_csv = PythonOperator( # Xml перекладываем в csv, так как с csv все базы работают гораздо лучше
+    task_id='export_xml_to_csv',
+    python_callable=export_xml_to_csv_func,
+    dag=dag
+)
 
-    # Ожидаем структуру <ValCurs Date="..." name="..."> <Valute ID="..."> ... </Valute> ... </ValCurs>
-    rows = []
-    for valute in root.findall('Valute'):
-        char_code = valute.findtext('CharCode')
-        num_code = valute.findtext('NumCode')
-        nominal = valute.findtext('Nominal')
-        name = valute.findtext('Name')
-        value = valute.findtext('Value')
-
-        rows.append({
-            'NumCode': num_code,
-            'CharCode': char_code,
-            'Nominal': nominal,
-            'Name': name,
-            'Value': value,
-        })
-
-    with open(csv_path, 'w', encoding='utf-8', newline='') as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=['NumCode', 'CharCode', 'Nominal', 'Name', 'Value'])
-        writer.writeheader()
-        writer.writerows(rows)
-
-    logging.info('Converted XML to CSV: %s', csv_path)
-    return csv_path
 
 
 def upload_to_minio(**context):
