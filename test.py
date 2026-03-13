@@ -73,7 +73,7 @@ def upload_to_minio(**context):
     csv_path = context['ti'].xcom_pull(task_ids='export_xml_to_csv')
     if not csv_path:
         # Сценарий, когда upload_to_minio запускается вручную, без upstream run
-        csv_path = '/tmp/bek/cbr.csv'
+        csv_path = '/opt/airflow/include/bek/cbr.csv'
 
     if not os.path.exists(csv_path):
         raise FileNotFoundError(f'CSV file not found: {csv_path}')
