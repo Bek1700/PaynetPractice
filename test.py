@@ -84,14 +84,22 @@ def upload_to_minio(**context):
 
     s3_hook = S3Hook(aws_conn_id=conn_id)
 
-    # Создаст bucket, если не существует (для S3Hook можно выполнить через client)
+    # Создаст bucket, если не существует, через низкоуровневый клиент
     client = s3_hook.get_conn()
-    s3_resource = s3_hook.get_resource_type('s3')
+    s3_resource = boto3.resource(
+        's3',
+        endpoint_url=client.meta.endpoint_url,
+        aws_access_key_id=client._request_signer._credentials.access_key,
+        aws_secret_access_key=client._request_signer._credentials.secret_key,
+        region_name=client.meta.region_name,
+    )
+
     bucket = s3_resource.Bucket(bucket_name)
     if bucket.creation_date is None:
         client.create_bucket(Bucket=bucket_name)
         logging.info('Created S3 bucket %s', bucket_name)
 
+    # Загружаем файл напрямую через клиент S3Hook
     s3_hook.load_file(
         filename=csv_path,
         key=object_key,
