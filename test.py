@@ -84,16 +84,13 @@ def upload_to_minio(**context):
 
     s3_hook = S3Hook(aws_conn_id=conn_id)
 
-    # Низкоуровневый клиент для работы с бакетом
-    client = s3_hook.get_conn()
-    try:
-        client.head_bucket(Bucket=bucket_name)
-    except Exception:
-        client.create_bucket(Bucket=bucket_name)
-        logging.info('Created S3 bucket %s', bucket_name)
-
-    # Загружаем файл через boto3 client (наиболее совместимый способ)
-    client.upload_file(csv_path, bucket_name, object_key)
+    # Загружаем файл через S3Hook (просто и корректно для Minio/S3 Connection)
+    s3_hook.load_file(
+        filename=csv_path,
+        key=object_key,
+        bucket_name=bucket_name,
+        replace=True,
+    )
     logging.info('Uploaded CSV %s to s3://%s/%s', csv_path, bucket_name, object_key)
     logging.info('Uploaded CSV %s to s3://%s/%s', csv_path, bucket_name, object_key)
 
