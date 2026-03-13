@@ -97,11 +97,7 @@ def upload_to_minio(**context):
     logging.info('Uploaded CSV %s to s3://%s/%s', csv_path, bucket_name, object_key)
 
 
-xml_to_csv_task = PythonOperator(
-    task_id='xml_to_csv',
-    python_callable=xml_to_csv,
-    dag=dag,
-)
+
 
 upload_to_minio_task = PythonOperator(
     task_id='upload_to_minio',
@@ -109,4 +105,4 @@ upload_to_minio_task = PythonOperator(
     dag=dag,
 )
 
-load_cbr_xml >> xml_to_csv_task >> upload_to_minio_task
+load_cbr_xml >> export_xml_to_csv >> upload_to_minio_task
