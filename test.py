@@ -52,7 +52,7 @@ def xml_to_csv(**context):
     with open(xml_path, encoding="windows-1251") as f:
         tree = ET.parse(f)
 
-root = tree.getroot()
+    root = tree.getroot()
 
     # Ожидаем структуру <ValCurs Date="..." name="..."> <Valute ID="..."> ... </Valute> ... </ValCurs>
     rows = []
