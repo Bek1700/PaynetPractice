@@ -16,7 +16,7 @@ from airflow.operators.bash import BashOperator
 from airflow.operators.python_operator import PythonOperator
 
 DEFAULT_ARGS = {
-    'start_date': datetime(2020,1,1),
+    'start_date': datetime.datetime(2020, 1, 1),
     'owner': 'Bekhzod',
     'poke_interval': 600
 }
