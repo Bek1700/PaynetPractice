@@ -1,6 +1,4 @@
-"""
-Складываем курс валют в GreenPlum (Меняем описание нашего дага)
-"""
+
 
 from airflow import DAG
 from airflow.utils.dates import days_ago
@@ -18,7 +16,7 @@ from airflow.operators.bash import BashOperator
 from airflow.operators.python_operator import PythonOperator
 
 DEFAULT_ARGS = {
-    'start_date': days_ago(2),
+    'start_date': datetime(2020,1,1),
     'owner': 'Bekhzod',
     'poke_interval': 600
 }
@@ -27,7 +25,8 @@ with DAG("bek_load_cbr_dynamic", # Меняем название нашего DA
           schedule_interval='@daily',
           default_args=DEFAULT_ARGS,
           max_active_runs=1,
-          tags=['karpov']
+          tags=['karpov'],
+          catchup=True                  # позволяет делать backfill
           ) as dag:
          
     def download_cbr_xml(**context):
@@ -36,10 +35,13 @@ with DAG("bek_load_cbr_dynamic", # Меняем название нашего DA
         print(f"Downloading CBR XML for date: {date_obj}")
         url = f'https://www.cbr.ru/scripts/XML_daily.asp?date_req={date_obj}'  # Формируем URL с динамической датой
         response = requests.get(url)
+        # проверяем что API ответил успешно
+        if response.status_code != 200:
+            raise Exception(f"CBR API returned {response.status_code}")
         response.encoding = 'windows-1251'  # Устанавливаем правильную кодировку
         xml_content = response.text
         os.makedirs('/opt/airflow/include/bek', exist_ok=True)
-        with open(f'/opt/airflow/include/bek/cbr_{date_obj}.xml', 'w', encoding='utf-8') as f:
+        with open(f'/opt/airflow/include/bek/cbr_{ds}.xml', 'w', encoding='utf-8') as f:
             f.write(xml_content)
 
     download_cbr_xml_task = PythonOperator(
